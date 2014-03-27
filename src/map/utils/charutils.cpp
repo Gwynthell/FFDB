@@ -403,6 +403,7 @@ void LoadChar(CCharEntity* PChar)
 		Sql_GetData(SqlHandle,20,&missions,&length);
 		memcpy(PChar->m_missionLog, missions, (length > sizeof(PChar->m_missionLog) ? sizeof(PChar->m_missionLog) : length));
 
+		PChar->SetPlayTime(Sql_GetUIntData(SqlHandle, 21));
 	}
 
 
@@ -641,7 +642,7 @@ void LoadChar(CCharEntity* PChar)
                             mamool_assault_point, lebros_assault_point, periqia_assault_point, ilrusi_assault_point, \
 							nyzul_isle_assault_point, zeni_point, jetton, therion_ichor, maw, past_sandoria_tp, \
 							past_bastok_tp, past_windurst_tp, allied_notes, bayld, kinetic_unit, obsidian_fragment, \
-                            lebondopt_wing, mweya_plasm, cruor, resistance_credit, dominion_note, \
+                            lebondopt_wing, pulchridopt_wing, mweya_plasm, cruor, resistance_credit, dominion_note, \
                             fifth_echelon_trophy, fourth_echelon_trophy, third_echelon_trophy, second_echelon_trophy, \
                             first_echelon_trophy, cave_points, id_tags, op_credits, traverser_stones, voidstones, \
                             kupofried_corundums, imprimaturs, pheromone_sacks \
@@ -2325,7 +2326,7 @@ void TrySkillUP(CCharEntity* PChar, SKILLTYPE SkillID, uint8 lvl)
 		int16  Diff = MaxSkill - CurSkill/10;
         double SkillUpChance = Diff/5.0 + map_config.skillup_multiplier * (2.0 - log10(1.0 + CurSkill /100));
 
-		double random = rand() / ((double)RAND_MAX);
+		double random = WELL512::drand();
 
 		if(SkillUpChance > 0.5)
 		{
@@ -2340,7 +2341,7 @@ void TrySkillUP(CCharEntity* PChar, SKILLTYPE SkillID, uint8 lvl)
 
 			for(uint8 i = 0; i < 4; ++i) // 1 + 4 возможных дополнительных (максимум 5)
 			{
-				random = rand() / ((double)RAND_MAX);
+				random = WELL512::drand();
 
 				switch(tier)
 				{
@@ -3010,7 +3011,7 @@ void DistributeExperiencePoints(CCharEntity* PChar, CMobEntity* PMob)
 					uint8 Pzone = PMember->getZone();
                     if (PMob->m_Type == MOBTYPE_NORMAL && ((Pzone > 0 && Pzone < 39) || (Pzone > 42 && Pzone < 134) || (Pzone > 135 && Pzone < 185) || (Pzone > 188 && Pzone < 255)))
 					{
-						if (PMember->StatusEffectContainer->HasStatusEffect(EFFECT_SIGNET) && PMob->m_Element > 0 && rand()%100 < 20 &&
+						if (PMember->StatusEffectContainer->HasStatusEffect(EFFECT_SIGNET) && PMob->m_Element > 0 && WELL512::irand()%100 < 20 &&
                         PMember->loc.zone == PMob->loc.zone) // Need to move to SIGNET_CHANCE constant
 						{
 							PMember->PTreasurePool->AddItem(4095 + PMob->m_Element, PMob);
@@ -3317,13 +3318,9 @@ void AddExperiencePoints(bool expFromRaise, CCharEntity* PChar, CBaseEntity* PMo
     if (PChar->MeritMode == true && PChar->jobs.job[PChar->GetMJob()] > 74 && expFromRaise == false)
         onLimitMode = true;
 
-    // Are we synced or in a level cap area?
-    if ((PChar->StatusEffectContainer->HasStatusEffect(EFFECT_LEVEL_SYNC) || PChar->StatusEffectContainer->HasStatusEffect(EFFECT_LEVEL_RESTRICTION)) && !onLimitMode && !expFromRaise)
-    {
-        // Next.. we check if the player is level capped and max exp..
-        if (PChar->jobs.job[PChar->GetMJob()] > 74 && PChar->jobs.job[PChar->GetMJob()] >= PChar->jobs.genkai && PChar->jobs.exp[PChar->GetMJob()] == GetExpNEXTLevel(PChar->jobs.job[PChar->GetMJob()]) - 1)
-            onLimitMode = true;
-    }
+    //we check if the player is level capped and max exp..
+    if (PChar->jobs.job[PChar->GetMJob()] > 74 && PChar->jobs.job[PChar->GetMJob()] >= PChar->jobs.genkai && PChar->jobs.exp[PChar->GetMJob()] == GetExpNEXTLevel(PChar->jobs.job[PChar->GetMJob()]) - 1)
+        onLimitMode = true;
 
 	// exp added from raise shouldn't display a message
 	if(!expFromRaise)
@@ -3375,15 +3372,14 @@ void AddExperiencePoints(bool expFromRaise, CCharEntity* PChar, CBaseEntity* PMo
 
     if (!expFromRaise)
     {
-        // Add influence for the players region..
-        conquest::GainInfluencePoints(PChar);
-
         REGIONTYPE region = PChar->loc.zone->GetRegionID();
 
         // Should this user be awarded conquest points..
         if (PChar->StatusEffectContainer->HasStatusEffect(EFFECT_SIGNET) &&
             (region >= 0 && region <= 22))
         {
+            // Add influence for the players region..
+            conquest::GainInfluencePoints(PChar);
             conquest::AddConquestPoints(PChar, exp);
         }
 
@@ -4308,6 +4304,11 @@ void SaveDeathTime(CCharEntity* PChar)
 {
 	const int8* fmtQuery = "UPDATE char_stats SET death = %u WHERE charid = %u LIMIT 1;";
 	Sql_Query(SqlHandle, fmtQuery, (uint32)time(NULL), PChar->id);
+}
+
+void SavePlayTime(CCharEntity* PChar)
+{
+	Sql_Query(SqlHandle, "UPDATE chars SET playtime = '%u' WHERE charid = '%u' LIMIT 1;", PChar->GetPlayTime(), PChar->id);
 }
 
 /************************************************************************

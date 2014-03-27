@@ -64,7 +64,7 @@ enum QUESTAREA
 
 #define MAX_QUESTAREA	 11
 #define MAX_QUESTID     256
-#define MAX_MISSIONAREA	 10
+#define MAX_MISSIONAREA	 13
 #define MAX_MISSIONID    95
 
 struct jobs_t
@@ -344,7 +344,11 @@ public:
     uint8             m_hasAutoTarget;              // возможность использования AutoTarget функции
 	position_t		  m_StartActionPos;				// позиция начала действия (использование предмета, начало стрельбы, позиция tractor)
 
+	uint32			  m_PlayTime;
+	uint32			  m_SaveTime;
+
 	uint8			  m_GMlevel;                    // Level of the GM flag assigned to this character
+    bool              m_isGMHidden;                 // GM Hidden flag to prevent player updates from being processed.
 
 	int8			  getShieldSize();
 
@@ -366,6 +370,9 @@ public:
 
 	std::vector<GearSetMod_t> m_GearSetMods;		// The list of gear set mods currently applied to the character.
     std::vector<AuctionHistory_t> m_ah_history;		// AH history list (в будущем нужно использовать UContainer)
+
+	void SetPlayTime(uint32 playTime);				// Set playtime
+	uint32 GetPlayTime(bool needUpdate = true);		// Get playtime
 
 	 CCharEntity();									// конструктор
 	~CCharEntity();									// деструктор

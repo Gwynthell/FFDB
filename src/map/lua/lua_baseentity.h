@@ -333,6 +333,7 @@ public:
 	int32 addStatusEffect(lua_State*);		// Adds status effect to character
     int32 addStatusEffectEx(lua_State*);	// Adds status effect to character
 	int32 hasStatusEffect(lua_State*);		// Checks to see if character has specified effect
+	int32 hasStatusEffectByFlag(lua_State*);// Checks to see if a character has an effect with the specified flag
 	int32 hasBustEffect(lua_State*);		// Checks to see if a character has a specified busted corsair roll
 	int32 canGainStatusEffect(lua_State*);		// Returns true if the effect can be added
     int32 getStatusEffect(lua_State*);		//
@@ -399,6 +400,7 @@ public:
 	int32 changeJob(lua_State*);			// changes the job of a char (testing only!)
 	int32 setMerits(lua_State*);			// set merits (testing only!)
 	int32 getMerit(lua_State*);
+	int32 getPlaytime(lua_State*);
 	int32 changesJob(lua_State*);			// changes the sub job of a char (testing only!)
 	int32 getWeaponDmg(lua_State*);			// gets the current equipped weapons' DMG rating
 	int32 getOffhandDmg(lua_State*);		// gets the current equipped offhand's DMG rating (used in WS calcs)
@@ -494,6 +496,8 @@ public:
 	int32 checkNameFlags(lua_State* L);      // this is check and not get because it tests for a flag, it doesn't return all flags
 	int32 getGMLevel(lua_State* L);
 	int32 setGMLevel(lua_State* L);
+    int32 getGMHidden(lua_State* L);
+    int32 setGMHidden(lua_State* L);
 	int32 PrintToPlayer(lua_State* L);   // for sending debugging messages/command confirmations to the player's client
     // == Pathfind Methods ==
     int32 pathThrough(lua_State* L); // walk at normal speed through the given points
